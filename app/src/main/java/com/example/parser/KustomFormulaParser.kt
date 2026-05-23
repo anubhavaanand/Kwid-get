@@ -39,11 +39,21 @@ object KustomFormulaParser {
         }
     }
 
+    private val sdfCache = java.util.concurrent.ConcurrentHashMap<String, SimpleDateFormat>()
+
+    private var lastBatteryCheckTime = 0L
+    private var cachedBatteryLevel = 75
+    private var cachedIsCharging = false
+
     private fun evaluateDateFormat(pattern: String): String {
         return try {
             val trimmed = pattern.trim().replace("'", "")
-            val sdf = SimpleDateFormat(trimmed, Locale.getDefault())
-            sdf.format(Date())
+            val sdf = sdfCache.getOrPut(trimmed) {
+                SimpleDateFormat(trimmed, Locale.getDefault())
+            }
+            synchronized(sdf) {
+                sdf.format(Date())
+            }
         } catch (e: Exception) {
             "Format error"
         }
@@ -51,21 +61,29 @@ object KustomFormulaParser {
 
     private fun evaluateBatteryInfo(context: Context?, arg: String): String {
         if (context == null) return "75"
-        val batteryStatus: Intent? = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { filter ->
-            context.registerReceiver(null, filter)
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastBatteryCheckTime > 5000L) {
+            try {
+                val batteryStatus: Intent? = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { filter ->
+                    context.registerReceiver(null, filter)
+                }
+                val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: 75
+                val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: 100
+                cachedBatteryLevel = if (level >= 0 && scale > 0) (level * 100 / scale.toFloat()).toInt() else 75
+                
+                val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+                cachedIsCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
+                lastBatteryCheckTime = currentTime
+            } catch (e: Exception) {
+                // Return cached fallback value on exception
+            }
         }
-        val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: 75
-        val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: 100
-        val batteryPct = if (level >= 0 && scale > 0) (level * 100 / scale.toFloat()).toInt() else 75
-        
-        val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
-        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
         
         return when (arg.trim().lowercase()) {
-            "level" -> batteryPct.toString()
-            "status" -> if (isCharging) "Charging" else "Discharging"
-            "charging" -> if (isCharging) "1" else "0"
-            else -> batteryPct.toString()
+            "level" -> cachedBatteryLevel.toString()
+            "status" -> if (cachedIsCharging) "Charging" else "Discharging"
+            "charging" -> if (cachedIsCharging) "1" else "0"
+            else -> cachedBatteryLevel.toString()
         }
     }
 

@@ -75,9 +75,11 @@ fun WidgetRenderer(
     val widgetBgColor = remember(config.backgroundColor) { parseHexColor(config.backgroundColor, Color.DarkGray) }
     val borderStrokeColor = remember(config.borderStrokeColor) { parseHexColor(config.borderStrokeColor, Color.Transparent) }
 
+    val safeHeight = if (config.heightRatio > 0) config.heightRatio.toFloat() else 1f
+    val safeWidth = if (config.widthRatio > 0) config.widthRatio.toFloat() else 1f
     Box(
         modifier = modifier
-            .aspectRatio(config.widthRatio.toFloat() / config.heightRatio.toFloat())
+            .aspectRatio(safeWidth / safeHeight)
             .clip(RoundedCornerShape((config.borderRadius * scale).dp))
             .background(widgetBgColor)
             .then(

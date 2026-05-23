@@ -27,7 +27,7 @@
 
         <receiver
             android:name=".provider.KwgtFreeWidgetProvider"
-            android:exported="false"
+            android:exported="true"
             android:label="KWGT Free Widget Canvas">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

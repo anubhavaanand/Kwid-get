@@ -105,7 +105,7 @@ fun DashboardScreen(
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "K-WGT FREE",
+                            text = "KWID-GET",
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.sp,
                             fontFamily = FontFamily.SansSerif
@@ -117,7 +117,13 @@ fun DashboardScreen(
                     titleContentColor = Color.White
                 ),
                 actions = {
-                    IconButton(onClick = { filePickerLauncher.launch(arrayOf("*/*")) }) {
+                    IconButton(onClick = { 
+                        try {
+                            filePickerLauncher.launch(arrayOf("*/*")) 
+                        } catch(e: Exception) {
+                            Toast.makeText(context, "File picker not available", Toast.LENGTH_SHORT).show()
+                        }
+                    }) {
                         Icon(imageVector = Icons.Default.FolderOpen, contentDescription = "Import Directory/File", tint = Color.LightGray)
                     }
                     IconButton(onClick = { showImportDialog = true }) {
@@ -537,7 +543,7 @@ fun WelcomeHeader() {
             }
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "Welcome to K-WGT Free, the comprehensive widget engine. Design custom shapes, embed progress gauges, hook into dynamic system formulas, or harness Gemini AI to build home screen widgets in seconds.",
+                text = "Welcome to Kwid-get, the comprehensive widget engine. Design custom shapes, embed progress gauges, hook into dynamic system formulas, or harness Gemini AI to build home screen widgets in seconds.",
                 color = Color(0xFFBACADB),
                 fontSize = 12.sp,
                 lineHeight = 17.sp

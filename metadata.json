@@ -1,5 +1,5 @@
 {
-  "name": "K-WGT Free",
+  "name": "Kwid-get",
   "description": "A powerful, free custom widget creator and parser engine with interactive layers, system formula parsing, and Gemini AI design generation.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
